@@ -53,14 +53,14 @@ function Chat() {
   }
 
   return (
-    <div className="flex h-screen flex-col">
+    <div className="flex h-dvh flex-col">
       <AppNav />
       <div className="flex-1 overflow-y-auto">
         <div className="mx-auto max-w-4xl space-y-6 px-4 py-8">
           {msgs.length === 0 && (
             <div className="fade-up py-12 text-center">
               <div className="bg-gold mx-auto flex h-14 w-14 items-center justify-center rounded-2xl shadow-glow"><Building2 className="h-7 w-7" /></div>
-              <h1 className="mt-6 font-display text-4xl font-semibold sm:text-5xl">Tell me what <span className="text-gold">home</span> you want</h1>
+              <h1 className="mt-6 font-display text-3xl font-semibold sm:text-5xl">Tell me what <span className="text-gold">home</span> you want</h1>
               <p className="mt-3 text-muted-foreground">Write freely — budget, area, bedrooms, lifestyle. I'll rank the best matches.</p>
               <div className="mt-8 flex flex-wrap justify-center gap-2">
                 {CHIPS.map((c) => <button key={c} onClick={() => send(c)} className="glass rounded-full px-4 py-2 text-sm transition-colors hover:text-accent-foreground">{c}</button>)}
@@ -84,7 +84,7 @@ function Chat() {
         </div>
       </div>
       <div className="border-t border-border/60 bg-background/80 backdrop-blur-xl">
-        <form onSubmit={(e) => { e.preventDefault(); send(input); }} className="glass mx-auto my-4 flex max-w-4xl items-end gap-2 rounded-2xl p-2 mx-4 sm:mx-auto">
+        <form onSubmit={(e) => { e.preventDefault(); send(input); }} className="glass mx-auto mx-3 my-3 flex max-w-4xl items-end gap-2 rounded-2xl p-2 sm:mx-auto sm:my-4">
           <textarea ref={inputRef} rows={1} value={input} onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(input); } }}
             placeholder="e.g. 2-bed near the metro in JLT under 110k" className="max-h-40 min-h-11 flex-1 resize-none bg-transparent px-3 py-3 text-sm outline-none placeholder:text-muted-foreground" />

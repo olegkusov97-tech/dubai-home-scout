@@ -1,7 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Search, Sparkles } from "lucide-react";
+import { Search, SlidersHorizontal, Sparkles } from "lucide-react";
+import { Slider } from "@/components/ui/slider";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { formatAED } from "@/lib/listings";
 import { AppNav } from "@/components/AppNav";
 import { PropertyCard } from "@/components/PropertyCard";
 import { getListings } from "@/lib/listings.functions";
@@ -45,7 +48,7 @@ function Explorer() {
   const [type, setType] = useState("");
   const [community, setCommunity] = useState("");
   const [beds, setBeds] = useState("");
-  const [maxPrice, setMaxPrice] = useState("");
+  const [price, setPrice] = useState<[number, number] | null>(null);
   const [minArea, setMinArea] = useState("");
   const [sort, setSort] = useState<SortKey>("value");
 
@@ -59,18 +62,55 @@ function Explorer() {
     return m;
   }, [all, communities]);
 
+  const bounds = useMemo(() => {
+    const p = all.filter((l) => !purpose || l.purpose === purpose).map((l) => l.price);
+    const step = purpose === "rent" ? 5000 : 50000;
+    return { min: Math.floor(Math.min(...p) / step) * step, max: Math.ceil(Math.max(...p) / step) * step, step };
+  }, [all, purpose]);
+  const range = price ?? [bounds.min, bounds.max];
+
   const results = useMemo(() => {
     let r = filterListings(all, {
       ...(purpose && { purpose }),
       ...(type && { type }),
       ...(community && { community }),
       ...(beds && { minBeds: Number(beds) }),
-      ...(maxPrice && { maxPrice: Number(maxPrice) }),
+      ...(price && { minPrice: price[0], maxPrice: price[1] }),
       ...(minArea && { minArea: Number(minArea) }),
     });
     if (q) r = r.filter((l) => `${l.title} ${l.community}`.toLowerCase().includes(q.toLowerCase()));
     return rankListings(r, sort);
-  }, [all, purpose, type, community, beds, maxPrice, minArea, q, sort]);
+  }, [all, purpose, type, community, beds, price, minArea, q, sort]);
+
+  const activeCount = [purpose, type, community, beds, minArea, price].filter(Boolean).length;
+  const filters = (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-2 md:grid-cols-5">
+        <select className={sel} value={purpose} onChange={(e) => { setPurpose(e.target.value as "" | "rent" | "sale"); setPrice(null); }}>
+          <option value="">Rent & sale</option><option value="rent">Rent</option><option value="sale">Sale</option>
+        </select>
+        <select className={sel} value={type} onChange={(e) => setType(e.target.value)}>
+          <option value="">Any type</option><option>Apartment</option><option>Villa</option><option>Townhouse</option>
+        </select>
+        <select className={sel} value={community} onChange={(e) => setCommunity(e.target.value)}>
+          <option value="">All communities</option>
+          {communities.map((c) => <option key={c}>{c}</option>)}
+        </select>
+        <select className={sel} value={beds} onChange={(e) => setBeds(e.target.value)}>
+          <option value="">Any beds</option>{[1, 2, 3, 4, 5].map((b) => <option key={b} value={b}>{b}+ beds</option>)}
+        </select>
+        <input className={`${sel} col-span-2 md:col-span-1`} type="number" inputMode="numeric" placeholder="Min area sqft" value={minArea} onChange={(e) => setMinArea(e.target.value)} />
+      </div>
+      <div className="glass rounded-xl px-4 py-3">
+        <div className="mb-3 flex items-center justify-between text-sm">
+          <span className="text-muted-foreground">Price{purpose === "rent" ? " / yr" : ""}</span>
+          <span className="font-medium">{formatAED(range[0])} – {formatAED(range[1])}</span>
+        </div>
+        <Slider aria-label="Price range" min={bounds.min} max={bounds.max} step={bounds.step} value={range}
+          onValueChange={(v) => setPrice([v[0] ?? bounds.min, v[1] ?? bounds.max])} className="py-2" />
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen">
@@ -78,8 +118,8 @@ function Explorer() {
       <section className="relative overflow-hidden">
         <img src={HERO} alt="Dubai skyline" className="absolute inset-0 h-full w-full object-cover" />
         <div className="hero-overlay absolute inset-0" />
-        <div className="relative mx-auto max-w-7xl px-4 pb-14 pt-20 sm:pt-28">
-          <h1 className="fade-up font-display text-5xl font-semibold leading-tight sm:text-7xl">
+        <div className="relative mx-auto max-w-7xl px-4 pb-10 pt-12 sm:pb-14 sm:pt-28">
+          <h1 className="fade-up font-display text-4xl font-semibold leading-tight sm:text-7xl">
             Find your place <br />in <span className="text-gold">Dubai</span>
           </h1>
           <p className="mt-4 max-w-lg text-muted-foreground">
@@ -97,33 +137,27 @@ function Explorer() {
       </section>
 
       <main className="mx-auto max-w-7xl px-4 py-8">
-        <div className="grid grid-cols-2 gap-2 md:grid-cols-6">
-          <select className={sel} value={purpose} onChange={(e) => setPurpose(e.target.value as "" | "rent" | "sale")}>
-            <option value="">Rent & sale</option><option value="rent">Rent</option><option value="sale">Sale</option>
-          </select>
-          <select className={sel} value={type} onChange={(e) => setType(e.target.value)}>
-            <option value="">Any type</option><option>Apartment</option><option>Villa</option><option>Townhouse</option>
-          </select>
-          <select className={sel} value={community} onChange={(e) => setCommunity(e.target.value)}>
-            <option value="">All communities</option>
-            {communities.map((c) => <option key={c}>{c}</option>)}
-          </select>
-          <select className={sel} value={beds} onChange={(e) => setBeds(e.target.value)}>
-            <option value="">Any beds</option>{[1, 2, 3, 4, 5].map((b) => <option key={b} value={b}>{b}+ beds</option>)}
-          </select>
-          <input className={sel} type="number" placeholder="Max price AED" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} />
-          <input className={sel} type="number" placeholder="Min area sqft" value={minArea} onChange={(e) => setMinArea(e.target.value)} />
-        </div>
+        <div className="hidden md:block">{filters}</div>
+        <Sheet>
+          <SheetTrigger asChild>
+            <button className="glass flex h-12 w-full items-center justify-center gap-2 rounded-xl text-sm font-medium md:hidden">
+              <SlidersHorizontal className="h-4 w-4" /> Filters{activeCount > 0 && <span className="bg-gold rounded-full px-2 text-xs">{activeCount}</span>}
+            </button>
+          </SheetTrigger>
+          <SheetContent side="bottom" className="max-h-[85dvh] overflow-y-auto rounded-t-3xl">
+            <SheetHeader><SheetTitle>Filters</SheetTitle></SheetHeader>
+            <div className="mt-4 pb-6">{filters}</div>
+          </SheetContent>
+        </Sheet>
 
-        <div className="mt-6 flex flex-wrap items-center gap-2">
-          <span className="mr-2 text-sm text-muted-foreground">Rank by</span>
+        <div className="mt-6 flex items-center justify-between text-sm text-muted-foreground"><span>Rank by</span><span>{results.length} results</span></div>
+        <div className="-mx-4 mt-2 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
           {SORTS.map((s) => (
             <button key={s.key} onClick={() => setSort(s.key)}
-              className={`rounded-full px-4 py-2 text-sm font-medium transition-all ${sort === s.key ? "bg-gold shadow-glow" : "glass text-muted-foreground hover:text-foreground"}`}>
+              className={`shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-all ${sort === s.key ? "bg-gold shadow-glow" : "glass text-muted-foreground hover:text-foreground"}`}>
               {s.label}
             </button>
           ))}
-          <span className="ml-auto text-sm text-muted-foreground">{results.length} results</span>
         </div>
 
         <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
