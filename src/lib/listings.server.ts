@@ -30,6 +30,8 @@ async function fetchBayut(key: string, purpose: string): Promise<Listing[]> {
       type: h.category?.[1]?.name ?? "Apartment",
       purpose: h.purpose === "for-rent" ? "rent" : "sale",
       photo: h.coverPhoto?.url ?? "",
+      photos: h.coverPhoto?.url ? [h.coverPhoto.url] : [],
+      description: h.title,
       agency: h.agency?.name ?? "",
       url: `https://www.bayut.com/property/details-${h.externalID}.html`,
     };

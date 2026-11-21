@@ -1,46 +1,44 @@
-import { Bath, BedDouble, ExternalLink, Ruler } from "lucide-react";
-import { formatAED, type Listing } from "@/lib/listings";
+import { Link } from "@tanstack/react-router";
+import { Bath, BedDouble, Heart, MapPin, Ruler } from "lucide-react";
+import { formatAED, type Listing, type ValueAssessment } from "@/lib/listings";
+import type { ExploreSearch } from "@/lib/search";
+import { useFavorites } from "@/hooks/use-favorites";
+import { ValueIndicator } from "@/components/ValueIndicator";
 
-export function PropertyCard({ l, rank, median, compact }: { l: Listing; rank?: number | undefined; median?: number | undefined; compact?: boolean }) {
-  const score = median ? Math.max(0, Math.min(100, 50 + ((median - l.pricePerSqft) / median) * 100)) : null;
+export function PropertyCard({ l, rank, value, from, compact }: {
+  l: Listing; rank?: number | undefined; value?: ValueAssessment | undefined; from?: ExploreSearch | undefined; compact?: boolean;
+}) {
+  const fav = useFavorites();
+  const saved = fav.has(l.id);
   return (
-    <article className="glass fade-up group overflow-hidden rounded-2xl transition-transform duration-300 hover:-translate-y-1 hover:shadow-glow">
-      <div className={`relative overflow-hidden ${compact ? "h-32" : "h-48"}`}>
-        <img src={l.photo} alt={l.title} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
-        {rank != null && <span className="bg-gold absolute left-3 top-3 rounded-full px-3 py-1 text-xs font-bold">#{rank}</span>}
-        <span className="glass absolute right-3 top-3 rounded-full px-3 py-1 text-xs font-medium uppercase">{l.purpose === "rent" ? "Rent" : "Sale"}</span>
-      </div>
-      <div className="space-y-3 p-4">
-        <div>
-          <p className="text-xs uppercase tracking-wider text-muted-foreground">{l.community} · {l.type}</p>
-          <h3 className="line-clamp-1 font-semibold">{l.title}</h3>
+    <article className="glass fade-up group relative overflow-hidden rounded-2xl transition-transform duration-300 hover:-translate-y-1 hover:shadow-glow">
+      <Link to="/property/$id" params={{ id: l.id }} search={from ?? {}} className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+        <div className={`relative overflow-hidden ${compact ? "h-36" : "h-48"}`}>
+          <img src={l.photo} alt={l.title} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+          {rank != null && <span className="bg-gold absolute left-3 top-3 rounded-full px-3 py-1 text-xs font-bold">#{rank}</span>}
         </div>
-        <div className="flex items-baseline justify-between">
-          <p className="text-gold font-display text-2xl font-bold">
-            {formatAED(l.price)}
-            {l.purpose === "rent" && <span className="text-sm font-normal text-muted-foreground"> /yr</span>}
-          </p>
-          <p className="text-xs text-muted-foreground">{l.pricePerSqft.toLocaleString()} AED/sqft</p>
-        </div>
-        <div className="flex gap-4 text-sm text-muted-foreground">
-          <span className="flex items-center gap-1"><BedDouble className="h-4 w-4" />{l.beds === 0 ? "Studio" : l.beds}</span>
-          <span className="flex items-center gap-1"><Bath className="h-4 w-4" />{l.baths}</span>
-          <span className="flex items-center gap-1"><Ruler className="h-4 w-4" />{l.area.toLocaleString()} sqft</span>
-        </div>
-        {score != null && !compact && (
+        <div className="space-y-3 p-4">
           <div>
-            <div className="mb-1 flex justify-between text-xs text-muted-foreground">
-              <span>Value vs {l.community} median</span><span>{Math.round(score)}/100</span>
-            </div>
-            <div className="h-1.5 overflow-hidden rounded-full bg-secondary">
-              <div className="bg-gold h-full rounded-full" style={{ width: `${score}%` }} />
-            </div>
+            <p className="text-gold font-display text-2xl font-bold leading-none">
+              {formatAED(l.price)}
+              {l.purpose === "rent" && <span className="font-sans text-sm font-normal text-muted-foreground"> /yr</span>}
+            </p>
+            <p className="mt-1.5 flex items-center gap-1 text-sm text-muted-foreground"><MapPin className="h-3.5 w-3.5" />{l.community} · {l.type}</p>
           </div>
-        )}
-        <a href={l.url} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-xs text-accent-foreground hover:underline">
-          {l.agency} <ExternalLink className="h-3 w-3" />
-        </a>
-      </div>
+          <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+            <span className="flex items-center gap-1"><BedDouble className="h-4 w-4 text-muted-foreground" />{l.beds === 0 ? "Studio" : `${l.beds} bd`}</span>
+            <span className="flex items-center gap-1"><Bath className="h-4 w-4 text-muted-foreground" />{l.baths} ba</span>
+            <span className="flex items-center gap-1"><Ruler className="h-4 w-4 text-muted-foreground" />{l.area.toLocaleString("en-US")} sqft</span>
+            <span className="text-muted-foreground">{l.pricePerSqft.toLocaleString("en-US")} AED/sqft</span>
+          </div>
+          <ValueIndicator v={value} />
+          <span className="block text-sm font-medium text-accent-foreground group-hover:underline">View details →</span>
+        </div>
+      </Link>
+      <button type="button" onClick={() => fav.toggle(l.id)} aria-label={saved ? "Remove from favorites" : "Save to favorites"} aria-pressed={saved}
+        className="glass absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full">
+        <Heart className={`h-5 w-5 ${saved ? "fill-primary text-primary" : ""}`} />
+      </button>
     </article>
   );
 }

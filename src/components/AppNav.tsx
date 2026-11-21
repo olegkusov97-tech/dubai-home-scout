@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Building2, MessageSquareText } from "lucide-react";
+import { Building2, Heart, MessageSquareText } from "lucide-react";
 
 export function AppNav() {
   const cls = "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground";
@@ -15,6 +15,9 @@ export function AppNav() {
           </Link>
           <Link to="/chat" className={cls} activeProps={{ className: "bg-secondary text-foreground" }}>
             <MessageSquareText className="h-4 w-4" /> <span className="hidden sm:inline">AI Finder</span>
+          </Link>
+          <Link to="/favorites" className={cls} activeProps={{ className: "bg-secondary text-foreground" }} aria-label="Favorites">
+            <Heart className="h-4 w-4" /> <span className="hidden sm:inline">Saved</span>
           </Link>
         </nav>
       </div>

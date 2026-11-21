@@ -31,3 +31,7 @@ use the editor.
 
 - Listings load server-side via src/lib/listings.server.ts: Bayut (RapidAPI, RAPIDAPI_KEY) when set, else built-in sample data; why: app works without a key.
 - AI finder uses two gateway calls (extract filters JSON, then explain results) because the default model has no tool calling on chat-completions.
+
+- Explore filters/sort live in URL search params (src/lib/search.ts); why: details page and AI Finder link back without losing state.
+- Best-value comparison (assessValue in src/lib/listings.ts) is computed client-side from the shared dataset; why: one consistent source for Explore, details, AI Finder.
+- AI Finder server returns filters only; the client filters the shared dataset, with a rule-based parser fallback (src/lib/parse-query.ts); why: never show fictional listings.
