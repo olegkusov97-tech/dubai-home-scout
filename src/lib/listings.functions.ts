@@ -51,6 +51,7 @@ export const chatFind = createServerFn({ method: "POST" })
       console.error(e);
       if (e instanceof GatewayError && e.httpStatus === 429) return { reply: "Too many requests — please try again in a moment.", listings: [] };
       if (e instanceof GatewayError && e.httpStatus === 402) return { reply: "AI credits are used up for this workspace.", listings: [] };
-      return { reply: "Sorry, something went wrong. Please try again.", listings: [] };
+      const code = e instanceof GatewayError ? e.code : "app_error";
+      return { reply: `The AI service failed (${code}). Please try again.`, listings: [] };
     }
   });

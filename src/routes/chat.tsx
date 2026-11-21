@@ -47,8 +47,9 @@ function Chat() {
     try {
       const res = await chatFind({ data: { messages: next.map(({ role, content }) => ({ role, content })) } });
       setMsgs([...next, { role: "assistant", content: res.reply, listings: res.listings }]);
-    } catch {
-      setMsgs([...next, { role: "assistant", content: "Sorry, something went wrong. Please try again." }]);
+    } catch (e) {
+      console.error("chatFind failed", e);
+      setMsgs([...next, { role: "assistant", content: "Couldn't reach the server — check your connection and try again." }]);
     } finally { setBusy(false); }
   }
 
