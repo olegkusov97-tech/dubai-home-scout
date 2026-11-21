@@ -28,3 +28,6 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+- Listings load server-side via src/lib/listings.server.ts: Bayut (RapidAPI, RAPIDAPI_KEY) when set, else built-in sample data; why: app works without a key.
+- AI finder uses two gateway calls (extract filters JSON, then explain results) because the default model has no tool calling on chat-completions.
